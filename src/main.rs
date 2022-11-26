@@ -8,24 +8,46 @@ Debug placeholders for can be used for any type that supports the Debug trait.
 */
 
 #[derive(Debug)]
+enum VisitorAction {
+    Accept,
+    AcceptWithNote { note: String },
+    Refuse,
+    Probation,
+}
+
+#[derive(Debug)]
 struct Visitor {
     name: String,
-    greeting: String,
+    action: VisitorAction,
+    age: i8,
 }
 impl Visitor {
-    fn new(name: &str, greeting: &str) -> Self { // accept str, but store as String.
+    fn new(name: &str, action: VisitorAction, age: i8) -> Self {
+        // accept str, but store as String.
         Self {
             name: name.to_lowercase(),
-            greeting: greeting.to_string(),
+            action,
+            age,
         }
     }
 
     fn greet_visitor(&self) {
-        println!("{}", self.greeting);
+        match &self.action {
+            VisitorAction::Accept => println!("Welcome to the treehouse, {}", self.name),
+            VisitorAction::AcceptWithNote { note } => {
+                println!("Welcome to the treehouse, {}", self.name);
+                println!("{}", note);
+                if self.age < 21 {
+                    println!("Do not serve alcohol to {}", self.name);
+                }
+            }
+            VisitorAction::Probation => println!("{} is now a probationary member", self.name),
+            VisitorAction::Refuse => println!("Do not allow {} in!", self.name),
+        }
     }
 }
 
-fn name() -> String{
+fn name() -> String {
     let mut your_name = String::new();
     stdin()
         .read_line(&mut your_name)
@@ -37,9 +59,15 @@ fn name() -> String{
 
 fn main() {
     let mut guest_list = vec![
-        Visitor::new("bert", "Hello Bert, enjoy your treehouse."),
-        Visitor::new("steve", "Hi Steve. Your milk is expired."),
-        Visitor::new("fred", "Fred, you were invited?!"),
+        Visitor::new("bert", VisitorAction::Accept, 45),
+        Visitor::new(
+            "steve",
+            VisitorAction::AcceptWithNote {
+                note: String::from("Lactose-free milk is in the fridge."),
+            },
+            15,
+        ),
+        Visitor::new("fred", VisitorAction::Refuse, 30),
     ];
 
     loop {
@@ -51,14 +79,15 @@ fn main() {
             .iter() // using an iterator instead of looping and returning bool!
             .find(|visitor| visitor.name == name); // find() will run a `closure`, returning an `Option`
 
-        match known_guest { // run a match statement on the `Option` returned by find()
+        // run a match statement on the `Option` returned by find()
+        match known_guest {
             Some(visitor) => visitor.greet_visitor(),
             None => {
                 if name.is_empty() {
                     break;
                 } else {
                     println!("{} is not on the guest list.", name);
-                    guest_list.push(Visitor::new(&name, "New friend"));
+                    guest_list.push(Visitor::new(&name, VisitorAction::Probation, 0));
                 }
             }
         }
