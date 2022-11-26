@@ -1,5 +1,13 @@
 use std::io::stdin;
+/*
+Debug placeholders for can be used for any type that supports the Debug trait.
 
+{:?}
+{:?}    raw
+{:#?}   pretty-print
+*/
+
+#[derive(Debug)]
 struct Visitor {
     name: String,
     greeting: String,
@@ -28,21 +36,34 @@ fn name() -> String{
 }
 
 fn main() {
-    println!("Hello, what's your name?");
-    let name = name();
-    println!("Hello, {}", name); // use {:?} for debugging.
-
-    let guest_list = [
+    let mut guest_list = vec![
         Visitor::new("bert", "Hello Bert, enjoy your treehouse."),
         Visitor::new("steve", "Hi Steve. Your milk is expired."),
         Visitor::new("fred", "Fred, you were invited?!"),
     ];
-    let known_guest = guest_list
-        .iter() // using an iterator instead of looping and returning bool!
-        .find(|visitor| visitor.name == name); // find() will run a `closure`, returning an `Option`
-    match known_guest { // run a match statement on the `Option` returned by find()
-        Some(visitor) => visitor.greet_visitor(),
-        None => println!("You aren't on the guest list, please leave.")
+
+    loop {
+        println!("Hello, what's your name? (Leave empty and press ENTER to quit");
+
+        let name = name();
+
+        let known_guest = guest_list
+            .iter() // using an iterator instead of looping and returning bool!
+            .find(|visitor| visitor.name == name); // find() will run a `closure`, returning an `Option`
+
+        match known_guest { // run a match statement on the `Option` returned by find()
+            Some(visitor) => visitor.greet_visitor(),
+            None => {
+                if name.is_empty() {
+                    break;
+                } else {
+                    println!("{} is not on the guest list.", name);
+                    guest_list.push(Visitor::new(&name, "New friend"));
+                }
+            }
+        }
     }
 
+    println!("The final list of visitors:");
+    println!("{:?}", guest_list)
 }
